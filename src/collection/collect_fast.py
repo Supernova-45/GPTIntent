@@ -74,7 +74,7 @@ def parse_arguments():
     PrintUtils.start_stage('Parsing command-line arguments')
     parser = ThrowingArgparse()
     parser.add_argument('-c', '--chatbot', help='The chatbot to collect from.', default="AzureGPT41")
-    parser.add_argument('-p', '--prompts', help='The prompts JSON file path.', default="./prompts/standard/prompts.json")
+    parser.add_argument('-p', '--prompts', help='The prompts JSON file path.', default="./prompts/prompts.json")
     parser.add_argument('-t', '--tlsport', type=int, help='The remote TLS port to sniff.', default=443)
     parser.add_argument('-o', '--output', type=str, help='The output folder for collected data.', default="data/main")
     parser.add_argument('-T', '--temperature', type=float, help='Override temperature value to use for the chatbot.')

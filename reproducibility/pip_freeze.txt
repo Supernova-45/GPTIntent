@@ -1,0 +1,24 @@
+filelock==3.24.3
+fsspec==2026.2.0
+Jinja2==3.1.6
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1765794027227/work
+lightgbm @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_lightgbm_1768022071/work
+MarkupSafe==3.0.3
+mpmath==1.3.0
+networkx==3.6.1
+numpy @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_numpy_1770098377/work/dist/numpy-2.4.2-cp312-cp312-macosx_10_13_x86_64.whl#sha256=46cd7dcbc91f8dc91198748aea9eceb18966ae8ee4917d2585f533f866fcc9e6
+packaging @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_packaging_1769093650/work
+pandas @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_pandas_1771409084/work
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_python-dateutil_1751104122/work
+PyYAML @ file:///Users/runner/miniforge3/conda-bld/pyyaml_1770223401206/work
+scikit-learn @ file:///Users/runner/miniforge3/conda-bld/bld/rattler-build_scikit-learn_1766550860/work/dist/scikit_learn-1.8.0-cp312-cp312-macosx_10_13_x86_64.whl#sha256=f1d07ebfe6c6b5c452ac699c234583e8751ea04cabc7b6b418b350448c262d8e
+scipy @ file:///Users/runner/miniforge3/conda-bld/scipy-split_1768799585584/work/dist/scipy-1.17.0-cp312-cp312-macosx_10_13_x86_64.whl#sha256=10c1c56d25606d548327bea494bc3b2d47cfa5aead694e96f00d942660f3c48c
+setuptools==82.0.0
+six @ file:///home/conda/feedstock_root/build_artifacts/bld/rattler-build_six_1753199211/work
+sympy==1.14.0
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1741878222898/work
+torch==2.2.2
+typing_extensions==4.15.0
+wheel==0.46.3
+xgboost @ file:///home/conda/feedstock_root/build_artifacts/xgboost-split_1770963435854/work/python-package
+

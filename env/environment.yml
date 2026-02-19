@@ -1,0 +1,13 @@
+name: gptintent
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Keep base env small for faster solves; install heavy optional models separately.
+  - python>=3.10,<3.13
+  - pip>=24
+  - numpy>=1.24
+  - pandas>=2.0
+  - scikit-learn>=1.3
+  - pyyaml>=6
+  - joblib>=1.3

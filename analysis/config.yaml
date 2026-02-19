@@ -1,0 +1,22 @@
+paths:
+  data_glob: data/shard*/GPT5MiniOpenRouter_shard*of50.json
+  prompts_path: prompts/prompts.json
+  artifacts_dir: artifacts
+  dataset_dir: artifacts/datasets
+  models_dir: artifacts/models
+  reports_dir: artifacts/reports
+
+split:
+  train_ratio: 0.70
+  val_ratio: 0.15
+  test_ratio: 0.15
+  random_seed: 1337
+
+sequence:
+  max_len: 1024
+
+training:
+  random_seed: 1337
+  class_weight: balanced
+  bootstrap_samples: 500
+  precision_at_k: [0.01, 0.05, 0.10]

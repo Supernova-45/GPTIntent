@@ -17,7 +17,7 @@
 ## Install dependencies
 Minimum:
 ```bash
-pip install numpy pandas scikit-learn pyyaml
+pip install "numpy<2" pandas scikit-learn pyyaml
 ```
 
 Required for full pipeline (tabular boosted models + LSTM):
@@ -33,6 +33,7 @@ pip install pyarrow
 Notes:
 - `pyarrow` is only needed if you want parquet output; otherwise the pipeline falls back to CSV.
 - Plotting libraries are not required by the current analysis scripts.
+- If using `torch==2.2.x`, pin NumPy to `<2` to avoid ABI issues (`pip install "numpy<2"`).
 
 ## Run order
 ```bash

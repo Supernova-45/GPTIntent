@@ -188,6 +188,7 @@ def main() -> None:
         print_env_versions,
         save_json,
         set_seed,
+        validate_feature_columns,
     )
 
     config = load_config(args.config)
@@ -206,6 +207,7 @@ def main() -> None:
 
     df = load_tabular_table(dataset_path)
     feature_cols = feature_columns_from_df(df)
+    validate_feature_columns(feature_cols)
 
     train_df = df[df["split"] == "train"].copy()
     val_df = df[df["split"] == "val"].copy()

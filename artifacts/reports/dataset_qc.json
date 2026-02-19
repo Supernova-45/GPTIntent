@@ -1,0 +1,62 @@
+{
+  "dataset_path": "artifacts/datasets/openrouter_intent_features.csv",
+  "load_stats": {
+    "files": 50,
+    "rows_total": 12856,
+    "rows_kept": 12856,
+    "rows_unmatched_prompt": 0,
+    "rows_bad_seq": 0
+  },
+  "shape": {
+    "rows": 12856,
+    "cols": 41
+  },
+  "split_counts": {
+    "val": 1929,
+    "train": 8989,
+    "test": 1938
+  },
+  "label_counts": {
+    "0": 6389,
+    "1": 6467
+  },
+  "split_label_counts": {
+    "train": {
+      "total": 8989,
+      "label_0": 4472,
+      "label_1": 4517
+    },
+    "val": {
+      "total": 1929,
+      "label_0": 958,
+      "label_1": 971
+    },
+    "test": {
+      "total": 1938,
+      "label_0": 959,
+      "label_1": 979
+    }
+  },
+  "leakage": {
+    "prompt_overlap": {
+      "train_val": 0,
+      "train_test": 0,
+      "val_test": 0
+    },
+    "sequence_overlap": {
+      "train_val": 0,
+      "train_test": 0,
+      "val_test": 0
+    }
+  },
+  "env_versions": {
+    "python": "3.12.12",
+    "numpy": "2.4.2",
+    "pandas": "3.0.1",
+    "sklearn": "1.8.0",
+    "xgboost": "3.2.0",
+    "lightgbm": "4.6.0",
+    "torch": "2.2.2",
+    "pyyaml": "6.0.3"
+  }
+}

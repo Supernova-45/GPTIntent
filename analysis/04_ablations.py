@@ -26,10 +26,10 @@ def _require_dependencies():
 
 
 def _select_feature_family(columns: List[str], family: str) -> List[str]:
-    size_cols = [c for c in columns if c.startswith("size_") or c in {"packet_count"}]
+    size_cols = [c for c in columns if c.startswith("size_")]
     time_cols = [c for c in columns if c.startswith("time_")]
     token_cols = [c for c in columns if c.startswith("response_token_count")]
-    meta_cols = [c for c in columns if c in {"temperature", "trial"}]
+    meta_cols = [c for c in columns if c in {"temperature"}]
 
     if family == "size_only":
         return size_cols
@@ -144,6 +144,7 @@ def main() -> None:
         print_env_versions,
         save_json,
         set_seed,
+        validate_feature_columns,
     )
 
     config = load_config(args.config)
@@ -159,6 +160,7 @@ def main() -> None:
 
     df = load_tabular_table(dataset_path)
     all_features = feature_columns_from_df(df)
+    validate_feature_columns(all_features)
 
     families = [
         "all",

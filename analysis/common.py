@@ -15,6 +15,18 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
+EXCLUDED_FEATURE_COLUMNS = {
+    "sample_id",
+    "prompt_id",
+    "label",
+    "split",
+    "sequence_hash",
+    "chatbot_name",
+    "trial",
+    # "packet_count",
+    "size_run_count",
+}
+
 
 @dataclass
 class DatasetRow:
@@ -455,15 +467,13 @@ def load_tabular_table(path: str):
 
 
 def feature_columns_from_df(df) -> List[str]:
-    excluded = {
-        "sample_id",
-        "prompt_id",
-        "label",
-        "split",
-        "sequence_hash",
-        "chatbot_name",
-    }
-    return [c for c in df.columns if c not in excluded]
+    return [c for c in df.columns if c not in EXCLUDED_FEATURE_COLUMNS]
+
+
+def validate_feature_columns(feature_columns: Sequence[str]) -> None:
+    blocked = sorted(set(feature_columns) & EXCLUDED_FEATURE_COLUMNS)
+    if blocked:
+        raise ValueError(f"Excluded feature columns were selected: {', '.join(blocked)}")
 
 
 def print_env_versions() -> Dict[str, str]:

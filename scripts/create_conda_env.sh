@@ -21,9 +21,8 @@ fi
 
 conda env create -f "${ENV_FILE}" || conda env update -f "${ENV_FILE}" --prune
 
-echo "Installing analysis extras (xgboost, lightgbm, torch)..."
-conda install -n "${ENV_NAME}" -y -c conda-forge xgboost lightgbm
-conda run -n "${ENV_NAME}" python -m pip install torch
+echo "Installing analysis extras (xgboost, lightgbm, pytorch, numpy<2)..."
+conda install -n "${ENV_NAME}" -y -c conda-forge xgboost lightgbm "numpy<2" pytorch
 
 mkdir -p reproducibility
 

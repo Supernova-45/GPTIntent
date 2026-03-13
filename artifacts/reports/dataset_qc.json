@@ -1,5 +1,5 @@
 {
-  "dataset_path": "artifacts/datasets/openrouter_intent_features.csv",
+  "dataset_path": "/Users/alexandrakim/Desktop/GPTIntent/artifacts/datasets/openrouter_intent_features.csv",
   "load_stats": {
     "files": 50,
     "rows_total": 12856,
@@ -51,12 +51,12 @@
   },
   "env_versions": {
     "python": "3.12.12",
-    "numpy": "2.4.2",
+    "numpy": "1.26.4",
     "pandas": "3.0.1",
     "sklearn": "1.8.0",
     "xgboost": "3.2.0",
     "lightgbm": "4.6.0",
-    "torch": "2.2.2",
+    "torch": "2.10.0",
     "pyyaml": "6.0.3"
   }
 }

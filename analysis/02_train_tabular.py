@@ -124,14 +124,20 @@ def _evaluate(
         average_precision_score,
         confusion_matrix,
         f1_score,
+        precision_score,
+        recall_score,
+        roc_auc_score,
     )
 
     from analysis.common import bootstrap_metric_ci, precision_at_k
 
     y_pred = (np.array(y_score) >= threshold).astype(int)
     auprc = float(average_precision_score(y_true, y_score))
+    roc_auc = float(roc_auc_score(y_true, y_score))
     f1 = float(f1_score(y_true, y_pred))
     acc = float(accuracy_score(y_true, y_pred))
+    precision = float(precision_score(y_true, y_pred, zero_division=0))
+    recall = float(recall_score(y_true, y_pred, zero_division=0))
     cm = confusion_matrix(y_true, y_pred).tolist()
 
     p_at_k = {f"p@{int(k*100)}": float(precision_at_k(y_true, y_score, k)) for k in precision_ks}
@@ -154,10 +160,13 @@ def _evaluate(
     return {
         "threshold": float(threshold),
         "auprc": auprc,
+        "roc_auc": roc_auc,
         "auprc_ci95": [float(auprc_ci[0]), float(auprc_ci[1])],
         "f1": f1,
         "f1_ci95": [float(f1_ci[0]), float(f1_ci[1])],
         "accuracy": acc,
+        "precision": precision,
+        "recall": recall,
         "confusion_matrix": cm,
         "precision_at_k": p_at_k,
     }
@@ -170,6 +179,16 @@ def main() -> None:
         "--dataset",
         default="",
         help="Optional explicit path to dataset parquet/csv. If omitted, uses artifacts/datasets/openrouter_intent_features.*",
+    )
+    parser.add_argument(
+        "--predictions-dir",
+        default="",
+        help="Optional output directory to save val/test predictions per model as JSON files.",
+    )
+    parser.add_argument(
+        "--models",
+        default="",
+        help="Optional comma-separated subset of models to train (e.g., logreg,random_forest,xgboost,lightgbm).",
     )
     args = parser.parse_args()
 
@@ -195,6 +214,8 @@ def main() -> None:
     set_seed(config.training.random_seed)
     ensure_dir(config.paths.models_dir)
     ensure_dir(config.paths.reports_dir)
+    if args.predictions_dir:
+        ensure_dir(args.predictions_dir)
 
     dataset_path = args.dataset
     if not dataset_path:
@@ -240,6 +261,34 @@ def main() -> None:
     )
 
     models = _build_models(config.training.random_seed)
+    if args.models.strip():
+        requested = [m.strip() for m in args.models.split(",") if m.strip()]
+        models = {k: v for k, v in models.items() if k in requested}
+        if not models:
+            raise ValueError("No valid models selected for --models.")
+
+    def _save_predictions(model_name: str, val_scores, test_scores) -> None:
+        if not args.predictions_dir:
+            return
+        save_json(
+            f"{args.predictions_dir}/{model_name}_predictions.json",
+            {
+                "model": model_name,
+                "val": {
+                    "sample_id": val_df["sample_id"].tolist(),
+                    "prompt_id": val_df["prompt_id"].tolist(),
+                    "y_true": [int(x) for x in y_val.tolist()],
+                    "y_score": [float(x) for x in val_scores.tolist()],
+                },
+                "test": {
+                    "sample_id": test_df["sample_id"].tolist(),
+                    "prompt_id": test_df["prompt_id"].tolist(),
+                    "y_true": [int(x) for x in y_test.tolist()],
+                    "y_score": [float(x) for x in test_scores.tolist()],
+                },
+            },
+        )
+
     for name, model in models.items():
         fit_kwargs = {}
         if name in {"logreg", "svm_linear", "svm_rbf", "random_forest", "xgboost", "lightgbm"}:
@@ -259,6 +308,7 @@ def main() -> None:
         t_high_prec = find_threshold_for_target_precision(y_val, val_scores, target_precision=0.90)
 
         test_scores = model.predict_proba(X_test)[:, 1]
+        _save_predictions(name, val_scores, test_scores)
 
         report = {
             "threshold_best_f1": _evaluate(

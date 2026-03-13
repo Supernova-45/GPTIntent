@@ -1,4 +1,8 @@
 data/
+data2/
 artifacts/models
+artifacts/reports
 __pycache__/
 *.pyc
+.venv
+artifacts/runs/

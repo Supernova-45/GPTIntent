@@ -1,0 +1,125 @@
+\section{Experiments / Results / Discussion}
+
+\textbf{Evaluation setup.}
+We evaluate two sources of data: \emph{Dataset A}, captured through OpenRouter before padding-based mitigation, and \emph{Dataset B}, captured through the patched OpenAI API. To prevent memorization, we split by \emph{prompt group} rather than by individual trial, so train/validation/test have zero prompt overlap. 
+
+Because our practical goal is to rank suspicious traffic, we use AUPRC as our primary metric. We additionally report $F_1$, ROC-AUC, and precision@k.
+
+\textbf{Hyperparameters and model selection.}
+We select the final model family by validation AUPRC, then set the operating threshold by validation $F_1$. The final hyperparameters are: Logistic Regression (\texttt{max\_iter}=500, balanced class weights), Linear SVM (\(C=1.0\), linear kernel), RBF SVM (\(C=1.0\), \(\gamma=\)``scale''), Random Forest (\texttt{n\_estimators}=300, \texttt{class\_weight}=\texttt{balanced\_subsample}), XGBoost (\(\eta=0.05\), \texttt{max\_depth}=6, \texttt{n\_estimators}=400, \texttt{subsample}=0.9, \texttt{colsample\_bytree}=0.9), and LightGBM (\texttt{num\_leaves}=31, learning rate \(=0.05\), feature fraction \(=0.9\), bagging fraction \(=0.9\), \texttt{n\_estimators}=400, balanced class weights). For robustness checks, we also run 5-fold group-stratified cross-validation.
+
+\textbf{Encrypted traffic from OpenRouter clearly leaks intent before patching.}
+On the unpatched provider, malicious intent is recoverable from encrypted traffic summaries. Table~\ref{tab:data1-main} shows that of the models tested, boosted tree ensembles perform best, linear baselines trail behind, and the sequence-only LSTM performs worst despite seeing the full packet stream. The strongest model is a blend of XGBoost, LightGBM, and Random Forest, which reaches \textbf{0.930 AUPRC}, \textbf{0.940 ROC-AUC}, and \textbf{0.881 $F_1$}. 
+
+This pattern is also apparent in the precision-recall curves (Figure~\ref{fig:pr-curves}). The boosted tree ensemble models dominate the PR frontier, while logistic regression and SVMs are consistently lower. 
+
+\begin{table}[t]
+\centering
+\caption{Dataset A (from OpenRouter) test-set results. Thresholds are selected on validation to maximize $F_1$.}
+\label{tab:data1-main}
+\begin{tabular}{lcccccc}
+\hline
+Model & AUPRC [95\% CI] & ROC-AUC & $F_1$ & Acc & Prec & Rec \\
+\hline
+LogReg & 0.833 [0.805, 0.861] & 0.865 & 0.796 & 0.763 & 0.704 & 0.916 \\
+Linear SVM & 0.835 [0.807, 0.863] & 0.866 & 0.804 & 0.778 & 0.724 & 0.905 \\
+RBF SVM & 0.873 [0.850, 0.895] & 0.892 & 0.824 & 0.809 & 0.771 & 0.886 \\
+Random Forest & 0.920 [0.903, 0.935] & 0.928 & 0.866 & 0.862 & 0.848 & 0.885 \\
+XGBoost & 0.926 [0.907, 0.942] & 0.940 & 0.880 & 0.873 & 0.844 & 0.918 \\
+LightGBM & 0.927 [0.907, 0.943] & 0.939 & 0.877 & 0.872 & 0.850 & 0.906 \\
+Blend (XGB+LGBM+RF) & \textbf{0.930 [0.913, 0.944]} & \textbf{0.940} & \textbf{0.881} & \textbf{0.875} & 0.848 & 0.915 \\
+LSTM & 0.820 [0.792, 0.848] & 0.872 & 0.841 & 0.818 & 0.754 & \textbf{0.951} \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Padding weakens the attack but does not eliminate it.}
+OpenAI's patch to pad the response length reduces separability but not enough to erase the side channel attack. On Dataset B, the best model is again the blended model, with \textbf{0.819 AUPRC}, 0.849 ROC-AUC, and \textbf{0.795 $F_1$} (Table~\ref{tab:data2-main}), well above the linear baseline.
+
+On the patched dataset, global separability is weaker, but the top end of the score distribution is still highly distinguished on malicious traces. An eavesdropper does not need to classify every trace perfectly, only to flag the most suspicious ones.
+
+\begin{table}[t]
+\centering
+\caption{Dataset B (OpenAI patched): test-set results.}
+\label{tab:data2-main}
+\begin{tabular}{lcccccc}
+\hline
+Model & AUPRC [95\% CI] & ROC-AUC & $F_1$ & Acc & Prec & Rec \\
+\hline
+LogReg & 0.711 [0.691, 0.737] & 0.765 & 0.738 & 0.689 & 0.638 & 0.876 \\
+Random Forest & 0.814 [0.793, 0.833] & 0.842 & 0.789 & 0.768 & 0.725 & 0.865 \\
+XGBoost & 0.815 [0.793, 0.834] & 0.846 & 0.793 & 0.767 & 0.715 & 0.890 \\
+LightGBM & 0.818 [0.796, 0.837] & \textbf{0.849} & 0.792 & 0.771 & \textbf{0.726} & 0.872 \\
+Blend (XGB+LGBM+RF) & \textbf{0.819 [0.798, 0.838]} & 0.849 & \textbf{0.795} & \textbf{0.772} & 0.722 & 0.885 \\
+LSTM (fast) & 0.512 [0.477, 0.548] & 0.518 & 0.675 & 0.529 & 0.513 & \textbf{0.988} \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset2_clean/blend_confusion_matrix.png}
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset2_clean/lstm_confusion_matrix.png}
+\caption{Dataset B confusion matrices for the blend (left) and LSTM fast profile (right).}
+\label{fig:data2-cms}
+\end{figure}
+
+\textbf{Failure analysis.}
+On Dataset B, the stronger models make most errors on benign traces with unusually bursty timing structure, which overlap more with malicious traces after padding. False negatives are fewer and are concentrated on borderline traces with flatter timing dynamics. 
+
+The LSTM reaches very high recall (\textbf{0.951}), but with noticeably worse ranking quality and only 0.754 precision. The model captures nearly every malicious stream but at the cost of flooding the queue with benign traffic, indicating that it learns too broad of a malicious flagging signal.
+
+\textbf{The attack is operational, not just statistical.}
+On both datasets, the strongest models achieve high precision among the top-scoring traces, meaning the attack can be used as a triage system rather than only as a global classifier. On patched traffic, the blend still achieves p@1\%=0.829, p@5\%=0.915, and p@10\%=0.889, as shown in Figure~\ref{fig:triage-curves}. 
+
+Amongst the models tested, XGBoost leans aggressive, LightGBM conservative, and the blended model provides the most stable top-k behavior.  For a real monitoring pipeline, the boosted models are therefore much more useful than the LSTM baseline.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset1/tabular_pr_curves.png}
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset2_clean/tabular_pr_curves.png}
+\caption{Precision-recall curves on Dataset A (left) and Dataset B (right).}
+\label{fig:pr-curves}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset1/precision_at_k_curve.png}
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset2_clean/precision_at_k_curve.png}
+\caption{Operational triage performance: precision among the top-scoring traces on Dataset A (left) and Dataset B (right). Even on patched traffic, the top-ranked traces remain highly enriched for malicious prompts.}
+\label{fig:triage-curves}
+\end{figure}
+
+\textbf{The signal appears early in the stream.}
+A realistic eavesdropper does not need to wait for full request completion. We evaluate a frozen XGBoost detector using only the first fraction of each encrypted trace. On Dataset A, performance rises quickly, as the AUPRC is already 0.717 after observing only 20\% of the stream, and reaches 0.847 by 50\% (Figure~\ref{fig:early}). On Dataset B, early leakage is noisier, but still present: by 50\% observation, AUPRC reaches 0.639, and by full observation it recovers to 0.815.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset1/early_observation_curve.png}
+\includegraphics[width=0.48\linewidth]{artifacts/reports/figures_dataset2_clean/early_observation_curve.png}
+\caption{Early-observation attack curves for XGBoost: Dataset A (left) and Dataset B (right). Leakage appears surprisingly early, especially without mitigation.}
+\label{fig:early}
+\end{figure}
+
+\textbf{What survives mitigation is mostly timing.}
+To test whether our results were driven by trivial collection artifacts, we ran stricter leakage-control ablations on Dataset A, removing packet-count, length, and capture-duration features. We found that in the strictest timing-only setting, logistic regression still reaches AUPRC 0.784 (Table~\ref{tab:ablations}). Even after removing coarse size cues, timing structure alone still reveals nontrivial information about intent.
+
+\begin{table}[t]
+\centering
+\caption{Leakage-control ablations (logistic regression, Dataset A).}
+\label{tab:ablations}
+\begin{tabular}{lcccc}
+\hline
+Feature family & \# feats & AUPRC & $F_1$ & Acc \\
+\hline
+All & 33 & 0.833 & 0.796 & 0.763 \\
+No packet-count features & 32 & 0.830 & 0.803 & 0.777 \\
+No length features & 14 & 0.817 & 0.798 & 0.777 \\
+No capture-duration features & 25 & 0.822 & 0.788 & 0.757 \\
+Strict timing signal only & 6 & 0.784 & 0.775 & 0.743 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Cross-dataset performance reveals strong provider-specific effects.}
+The main overfitting risk derives from memorization of repeated prompts or provider-specific collection artifacts. We thus evaluate cross-provider transfer by training on the OpenRouter dataset and testing on the OpenAI dataset and vice versa. These results are much weaker than in-provider testing, indicating that much of the learned signal is provider-specific. In particular, OpenRouter to OpenAI performs worse than random, while OpenAI to OpenRouter preserves moderate AUPRC (0.678). This suggests that side-channel classifiers understand both intent and provider fingerprint.
